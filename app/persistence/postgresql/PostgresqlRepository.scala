@@ -338,7 +338,7 @@ class PostgresqlRepository @Inject() (
   def batchInsert(db: String, collection: String, jsons: Seq[(JsObject, Geometry[_])]): Future[Int] = {
     val paramValues = buildUpdateParameters(jsons)
     val dbio = DBIO.sequence(paramValues.map { case (id, json, geom) => Sql.INSERT_DATA(db, collection, id, json, geom) }).map(_.sum)
-    runOnDb("batch-insert")(dbio)
+    runOnDb("batch-insert")(dbio.transactionally)
   }
 
   private def buildUpdateParameters(jsons: Seq[(JsObject, Geometry[_])]) =
@@ -369,7 +369,7 @@ class PostgresqlRepository @Inject() (
   def upsert(db: String, collection: String, jsons: Seq[(JsObject, Geometry[_])]): Future[Int] = {
     val paramValues = buildUpdateParameters(jsons)
     val dbio = DBIO.sequence(paramValues.map { case (id, json, geom) => Sql.UPSERT_DATA(db, collection, id, json, geom) }).map(_.sum)
-    runOnDb("batch-upsert")(dbio)
+    runOnDb("batch-upsert")(dbio.transactionally)
   }
 
   /**
