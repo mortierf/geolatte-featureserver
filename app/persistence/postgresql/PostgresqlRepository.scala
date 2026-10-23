@@ -486,7 +486,7 @@ class PostgresqlRepository @Inject() (
         case _ =>
           metrics.prometheusMetrics.dbio
             .labels(label)
-            .observe((System.nanoTime - startTimeNano) / 10E6)
+            .observe((System.nanoTime - startTimeNano) / 1e6)
       }
       .recover {
         case MappableException(dbe) => throw dbe
