@@ -25,6 +25,7 @@ class TransactionAPISpec extends InCollectionSpecification {
        insert value idem-potently when object does not exist                      $e3
        update value idem-potently when object does already exist                  $e4
        update value idem-potently when object does already exist and id is text   $e42
+       update value when only the geometry changes                                $e43
 
      The transaction /insert should:
         return OK when the collection exists, and data is valid                   $e5
@@ -124,6 +125,17 @@ class TransactionAPISpec extends InCollectionSpecification {
     }
     deleteCollection(testDbName, newColName)
     result
+  }
+
+  def e43 = {
+    val f = feature().sample.get
+    removeData(testDbName, testColName)
+    postUpsert(testDbName, testColName, f)
+    val modifiedFeature = f + ("geometry" -> (feature().sample.get \ "geometry").get)
+    postUpsert(testDbName, testColName, modifiedFeature)
+    getList(testDbName, testColName, "") applyMatcher { res =>
+      res.responseBody must beSome(matchFeaturesInJson(Json.arr(modifiedFeature)))
+    }
   }
 
   def e5 = {

@@ -775,9 +775,11 @@ class PostgresqlRepository @Inject() (
        """
 
     def UPSERT_DATA(dbname: String, tableName: String, id: String, json: String, geometry: String) =
-      sqlu"""INSERT INTO #${safeIdentifier(dbname)}.#${safeIdentifier(tableName)}  (id, json, geometry)
+      sqlu"""INSERT INTO #${safeIdentifier(dbname)}.#${safeIdentifier(tableName)} AS t (id, json, geometry)
              VALUES ($id, $json::json, $geometry::geometry)
-             ON CONFLICT (id) DO UPDATE SET json = EXCLUDED.json, geometry = EXCLUDED.geometry;
+             ON CONFLICT (id) DO UPDATE SET json = EXCLUDED.json, geometry = EXCLUDED.geometry
+             WHERE t.json::jsonb IS DISTINCT FROM EXCLUDED.json::jsonb
+                OR t.geometry IS DISTINCT FROM EXCLUDED.geometry;
        """
 
     def DELETE_DATA(dbname: String, tableName: String, where: String) =
